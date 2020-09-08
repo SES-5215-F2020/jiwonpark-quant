@@ -1,0 +1,70 @@
+---
+title: "Assignment-1"
+author: "Jiwon Park"
+date: '2020 9 7 '
+output: html_document
+---
+```{r message=FALSE} 
+library(tidycensus)
+library(tidyverse)
+library(dplyr)
+```
+
+## Variables Used
+
+```{r}
+area_vars_2018 <- load_variables (2018, "acs5")
+```
+
+I decided to explore the relationship between percentage of tenant population (who are without homeownership), rate of using public transportat to work, monthly housing cost, median income, citizenship status, and race in the US counties (so my unit of analysis is the "county"). The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).
+
+1. Total population (continuous) : tot_pop
+2. Percentage of the tenant population (continuous) : pct_ten
+3. Percentage of the population using public transport to work (continuous) : pct_pubtra
+4. Median Income (continuous) : med_income
+5. Monthly Housing Cost (continuous) : mon_hous
+5. Whether the majority of the population is US-born or not (categorical) : maj_usborn
+6. Whether the majority of the population is white or not (categorical) : maj_white
+
+```{r message=FALSE}
+pop_vars <- c(tot_pop = "B01003_001",
+              tot_ten = "B07013_003", 
+              tot_pubtra = "B08006_008",
+              med_income = "B21004_001",
+              mon_hous = "B25104_001", 
+              usborn_pop = "B05001_002",
+              white_pop = "B02001_002")
+
+counties2018 <- get_acs(geography = "county",
+                        variables = pop_vars,
+                        output = "wide",
+                        year = 2018,
+                        survey = "acs5")
+```
+
+## Calculating new variables
+
+After finding my variables and filtering them to the level of county, I want to calculate the percentage of the tenants and the percentage of people using public transportation to work in each county. I also calculate the percentage of the population that is US-born and that of the white population. I then create a categorical variable with two categories: "TRUE" if at least half the population are US-born or white, and "FALSE" otherwise. I leave total population, median income and monthly housing cost as they are, as there's nothing to change.
+
+```{r}
+counties2018 <- counties2018 %>%
+  mutate(pct_ten = tot_tenE / tot_popE,
+         pct_pubtra = tot_pubtraE / tot_popE,
+         maj_usborn = usborn_popE / tot_popE > 0.5,
+         maj_white = white_popE / tot_popE > 0.5) %>% 
+  select(tot_popE, med_incomeE, mon_housE, pct_ten, pct_pubtra, maj_usborn, maj_white)
+
+counties2018
+```
+
+## Saving the data
+
+My final dataset has 3,220 rows, which mean my analysis will include 3,220 counties across the US.
+
+Finally, I'll save my data as a CSV file.
+
+```{r}
+write_csv(counties2018, "counties2018.csv")
+```
+
+
