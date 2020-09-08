@@ -1,7 +1,7 @@
 ---
 title: "Assignment-1"
 author: "Jiwon Park"
-date: '2020 9 7 '
+date: '2020 9 9 '
 output: html_document
 ---
 ```{r message=FALSE} 
@@ -10,15 +10,13 @@ library(tidyverse)
 library(dplyr)
 ```
 
-This is the test.
-
 ## Variables Used
 
 ```{r}
 area_vars_2018 <- load_variables (2018, "acs5")
 ```
 
-I decided to explore the relationship between percentage of tenant population (who are without homeownership), rate of using public transportat to work, monthly housing cost, median income, citizenship status, and race in the US counties (so my unit of analysis is the "county"). The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).
+I decided to explore the relationship between percentage of tenant population (who are without homeownership), rate of using public transportation to work, monthly housing cost, median income, citizenship status, and race in the US counties (so my unit of analysis is the "county"). The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).
 
 1. Total population (continuous) : tot_pop
 2. Percentage of the tenant population (continuous) : pct_ten
