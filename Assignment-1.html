@@ -375,7 +375,7 @@ library(dplyr)</code></pre>
 <div id="variables-used" class="section level2">
 <h2>Variables Used</h2>
 <pre class="r"><code>area_vars_2018 &lt;- load_variables (2018, &quot;acs5&quot;)</code></pre>
-<p>I decided to explore the relationship between percentage of tenant population (who are without homeownership), rate of using public transportation to work, monthly housing cost, median income, citizenship status, and race in the US counties (so my unit of analysis is the “county”). The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).</p>
+<p>I decided to explore the relationship between percentage of tenant population (who are without homeownership), rate of using public transportation to work, monthly housing cost, median income, sex, and race in the US counties (so my unit of analysis is the “county”). The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).</p>
 <ol style="list-style-type: decimal">
 <li>Total population (continuous) : tot_pop</li>
 <li>Percentage of the tenant population (continuous) : pct_ten</li>
@@ -383,14 +383,15 @@ library(dplyr)</code></pre>
 <li>Median Income (continuous) : med_income</li>
 <li>Monthly Housing Cost (continuous) : mon_hous</li>
 <li>Whether the majority of the population is US-born or not (categorical) : maj_usborn</li>
-<li>Whether the majority of the population is white or not (categorical) : maj_white</li>
+<li>Majority Sex (categorical) : maj_sex</li>
 </ol>
 <pre class="r"><code>pop_vars &lt;- c(tot_pop = &quot;B01003_001&quot;,
               tot_ten = &quot;B07013_003&quot;, 
               tot_pubtra = &quot;B08006_008&quot;,
               med_income = &quot;B21004_001&quot;,
               mon_hous = &quot;B25104_001&quot;, 
-              usborn_pop = &quot;B05001_002&quot;,
+              male_pop = &quot;B01001_002&quot;,
+              female_pop = &quot;B01001_026&quot;,
               white_pop = &quot;B02001_002&quot;)
 
 counties2018 &lt;- get_acs(geography = &quot;county&quot;,
@@ -405,24 +406,27 @@ counties2018 &lt;- get_acs(geography = &quot;county&quot;,
 <pre class="r"><code>counties2018 &lt;- counties2018 %&gt;%
   mutate(pct_ten = tot_tenE / tot_popE,
          pct_pubtra = tot_pubtraE / tot_popE,
-         maj_usborn = usborn_popE / tot_popE &gt; 0.5,
+         pct_male = male_popE / tot_popE,
+         pct_female = female_popE / tot_popE,
          maj_white = white_popE / tot_popE &gt; 0.5) %&gt;% 
-  select(tot_popE, med_incomeE, mon_housE, pct_ten, pct_pubtra, maj_usborn, maj_white)
+  mutate(maj_sex = case_when(pct_male &gt; 0.5 ~ &quot;Male&quot;,
+                             pct_female &gt; 0.5 ~ &quot;Female&quot;)) %&gt;%
+  select(tot_popE, med_incomeE, mon_housE, pct_ten, pct_pubtra, maj_sex, maj_white)
 
 counties2018</code></pre>
 <pre><code>## # A tibble: 3,220 x 7
-##    tot_popE med_incomeE mon_housE pct_ten pct_pubtra maj_usborn maj_white
-##       &lt;dbl&gt;       &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;lgl&gt;      &lt;lgl&gt;    
-##  1    47086       19393     18299   0.474   0.000127 TRUE       FALSE    
-##  2    12028       20041      4563   0.169   0        TRUE       TRUE     
-##  3     8321       19418      3164   0.216   0.00108  TRUE       TRUE     
-##  4    23480       22040      8706   0.191   0.000724 TRUE       TRUE     
-##  5    10129       22108      3658   0.146   0        TRUE       TRUE     
-##  6    21278       22171      8224   0.348   0.00108  TRUE       TRUE     
-##  7     7346       16398      2530   0.251   0        TRUE       FALSE    
-##  8    13714       22256      4172   0.100   0        TRUE       TRUE     
-##  9    35787       25982     13074   0.226   0.00179  TRUE       FALSE    
-## 10     7372       16076      3055   0.378   0        TRUE       FALSE    
+##    tot_popE med_incomeE mon_housE pct_ten pct_pubtra maj_sex maj_white
+##       &lt;dbl&gt;       &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;   &lt;lgl&gt;    
+##  1    47086       19393     18299   0.474   0.000127 Female  FALSE    
+##  2    12028       20041      4563   0.169   0        Female  TRUE     
+##  3     8321       19418      3164   0.216   0.00108  Male    TRUE     
+##  4    23480       22040      8706   0.191   0.000724 Male    TRUE     
+##  5    10129       22108      3658   0.146   0        Male    TRUE     
+##  6    21278       22171      8224   0.348   0.00108  Female  TRUE     
+##  7     7346       16398      2530   0.251   0        Female  FALSE    
+##  8    13714       22256      4172   0.100   0        Male    TRUE     
+##  9    35787       25982     13074   0.226   0.00179  Female  FALSE    
+## 10     7372       16076      3055   0.378   0        Female  FALSE    
 ## # … with 3,210 more rows</code></pre>
 </div>
 <div id="saving-the-data" class="section level2">
