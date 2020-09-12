@@ -23,8 +23,8 @@ I decided to explore the relationship between percentage of tenant population (w
 3. Percentage of the population using public transport to work (continuous) : pct_pubtra
 4. Median Income (continuous) : med_income
 5. Monthly Housing Cost (continuous) : mon_hous
-5. Whether the majority of the population is US-born or not (categorical) : maj_usborn
 6. Majority Sex (categorical) : maj_sex
+7. Whether the majority of the population is White or Not (categorical) : maj_white
 
 ```{r message=FALSE}
 pop_vars <- c(tot_pop = "B01003_001",
@@ -45,7 +45,9 @@ counties2018 <- get_acs(geography = "county",
 
 ## Calculating new variables
 
-After finding my variables and filtering them to the level of county, I want to calculate the percentage of the tenants and the percentage of people using public transportation to work in each county. I also calculate the percentage of the population that is US-born and that of the white population. I then create a categorical variable with two categories: "TRUE" if at least half the population are US-born or white, and "FALSE" otherwise. I leave total population, median income and monthly housing cost as they are, as there's nothing to change.
+After finding my variables and filtering them to the level of county, I want to calculate the percentage of the tenants and the percentage of people using public transportation to work in each county. I also calculate the percentage of the population that are white. I then create a categorical variable with two categories: "TRUE" if at least half the population are white, and "FALSE" otherwise. 
+
+I also manipulate the sex categorical variable so that any county with one gender (male or female) greater than 50% will be designated as the majority sex. I leave total population, median income and monthly housing cost as they are, as there's nothing to change.
 
 ```{r}
 counties2018 <- counties2018 %>%

@@ -382,8 +382,8 @@ library(dplyr)</code></pre>
 <li>Percentage of the population using public transport to work (continuous) : pct_pubtra</li>
 <li>Median Income (continuous) : med_income</li>
 <li>Monthly Housing Cost (continuous) : mon_hous</li>
-<li>Whether the majority of the population is US-born or not (categorical) : maj_usborn</li>
 <li>Majority Sex (categorical) : maj_sex</li>
+<li>Whether the majority of the population is White or Not (categorical) : maj_white</li>
 </ol>
 <pre class="r"><code>pop_vars &lt;- c(tot_pop = &quot;B01003_001&quot;,
               tot_ten = &quot;B07013_003&quot;, 
@@ -402,7 +402,8 @@ counties2018 &lt;- get_acs(geography = &quot;county&quot;,
 </div>
 <div id="calculating-new-variables" class="section level2">
 <h2>Calculating new variables</h2>
-<p>After finding my variables and filtering them to the level of county, I want to calculate the percentage of the tenants and the percentage of people using public transportation to work in each county. I also calculate the percentage of the population that is US-born and that of the white population. I then create a categorical variable with two categories: “TRUE” if at least half the population are US-born or white, and “FALSE” otherwise. I leave total population, median income and monthly housing cost as they are, as there’s nothing to change.</p>
+<p>After finding my variables and filtering them to the level of county, I want to calculate the percentage of the tenants and the percentage of people using public transportation to work in each county. I also calculate the percentage of the population that are white. I then create a categorical variable with two categories: “TRUE” if at least half the population are white, and “FALSE” otherwise.</p>
+<p>I also manipulate the sex categorical variable so that any county with one gender (male or female) greater than 50% will be designated as the majority sex. I leave total population, median income and monthly housing cost as they are, as there’s nothing to change.</p>
 <pre class="r"><code>counties2018 &lt;- counties2018 %&gt;%
   mutate(pct_ten = tot_tenE / tot_popE,
          pct_pubtra = tot_pubtraE / tot_popE,
