@@ -375,66 +375,104 @@ library(dplyr)</code></pre>
 <div id="variables-used" class="section level2">
 <h2>Variables Used</h2>
 <pre class="r"><code>area_vars_2018 &lt;- load_variables (2018, &quot;acs5&quot;)</code></pre>
-<p>I decided to explore the relationship between percentage of tenant population (who are without homeownership), rate of using public transportation to work, monthly housing cost, median income, sex, and race in the US counties (so my unit of analysis is the “county”). The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).</p>
 <ol style="list-style-type: decimal">
 <li>Total population (continuous) : tot_pop</li>
-<li>Percentage of the tenant population (continuous) : pct_ten</li>
-<li>Percentage of the population using public transport to work (continuous) : pct_pubtra</li>
 <li>Median Income (continuous) : med_income</li>
 <li>Monthly Housing Cost (continuous) : mon_hous</li>
-<li>Majority Sex (categorical) : maj_sex</li>
-<li>Whether the majority of the population is White or Not (categorical) : maj_white</li>
+<li>Percentage of the tenant population (continuous) : pct_ten</li>
+<li>Percentage of the foreign-born population (continuous) : pct_foreign</li>
+<li>Majority Level of Education (categorical) : maj_edu</li>
+<li>Majority Mode of Transportation (categorical) : maj_tra</li>
+<li>Majority race of the population (not Hispanic or Latino) (categorical) : maj_race</li>
 </ol>
 <pre class="r"><code>pop_vars &lt;- c(tot_pop = &quot;B01003_001&quot;,
-              tot_ten = &quot;B07013_003&quot;, 
-              tot_pubtra = &quot;B08006_008&quot;,
               med_income = &quot;B21004_001&quot;,
               mon_hous = &quot;B25104_001&quot;, 
-              male_pop = &quot;B01001_002&quot;,
-              female_pop = &quot;B01001_026&quot;,
-              white_pop = &quot;B02001_002&quot;)
+              tot_ten = &quot;B07013_003&quot;, 
+              tot_foreign = &quot;B05002_013&quot;,
+              tot_less_high = &quot;B06009_002&quot;,
+              tot_high = &quot;B06009_003&quot;,
+              tot_col = &quot;B06009_004&quot;,
+              tot_bac = &quot;B06009_005&quot;,
+              tot_gra = &quot;B06009_006&quot;,
+              tot_car = &quot;B08006_002&quot;,
+              tot_pubtra = &quot;B08006_008&quot;,
+              tot_bic = &quot;B08006_014&quot;,
+              tot_walk = &quot;B08006_015&quot;,
+              tot_tra_other = &quot;B08006_016&quot;,
+              nh_white_alone = &quot;B03002_003&quot;,
+              nh_black_AA_alone = &quot;B03002_004&quot;,
+              nh_asian_alone =  &quot;B03002_006&quot;,
+              h_latino = &quot;B03002_012&quot;,
+              nh_race_other = &quot;B03002_008&quot;)
 
-counties2018 &lt;- get_acs(geography = &quot;county&quot;,
+tractLA2018 &lt;- get_acs(geography = &quot;tract&quot;,
                         variables = pop_vars,
                         output = &quot;wide&quot;,
+                        state = &quot;CA&quot;,
+                       county = &quot;Los Angeles&quot;,
                         year = 2018,
                         survey = &quot;acs5&quot;)</code></pre>
 </div>
 <div id="calculating-new-variables" class="section level2">
 <h2>Calculating new variables</h2>
-<p>After finding my variables and filtering them to the level of county, I want to calculate the percentage of the tenants and the percentage of people using public transportation to work in each county. I also calculate the percentage of the population that are white. I then create a categorical variable with two categories: “TRUE” if at least half the population are white, and “FALSE” otherwise.</p>
-<p>I also manipulate the sex categorical variable so that any county with one gender (male or female) greater than 50% will be designated as the majority sex. I leave total population, median income and monthly housing cost as they are, as there’s nothing to change.</p>
-<pre class="r"><code>counties2018 &lt;- counties2018 %&gt;%
+<pre class="r"><code>tractLA2018 &lt;- tractLA2018 %&gt;%
   mutate(pct_ten = tot_tenE / tot_popE,
+         pct_foreign = tot_foreignE / tot_popE,
+         pct_less_high = tot_less_highE / tot_popE,
+         pct_high = tot_highE / tot_popE,
+         pct_col = tot_colE / tot_popE,
+         pct_bac = tot_bacE / tot_popE,
+         pct_gra = tot_graE / tot_popE,
+         pct_car = tot_carE / tot_popE,
          pct_pubtra = tot_pubtraE / tot_popE,
-         pct_male = male_popE / tot_popE,
-         pct_female = female_popE / tot_popE,
-         maj_white = white_popE / tot_popE &gt; 0.5) %&gt;% 
-  mutate(maj_sex = case_when(pct_male &gt; 0.5 ~ &quot;Male&quot;,
-                             pct_female &gt; 0.5 ~ &quot;Female&quot;)) %&gt;%
-  select(tot_popE, med_incomeE, mon_housE, pct_ten, pct_pubtra, maj_sex, maj_white)
+         pct_bic = tot_bicE / tot_popE,
+         pct_walk = tot_walkE / tot_popE,
+         pct_tra_other = tot_tra_otherE / tot_popE,
+         pct_nh_white = nh_white_aloneE / tot_popE,
+         pct_nh_black = nh_black_AA_aloneE / tot_popE,
+         pct_h_latino = h_latinoE / tot_popE,
+         pct_nh_asian = nh_asian_aloneE / tot_popE,
+         pct_nh_race_other = nh_race_otherE / tot_popE) %&gt;%
+  mutate(pct_less_col = pct_less_high + pct_less_high,
+         pct_col = pct_col + pct_bac) %&gt;%
+  mutate(maj_edu = case_when(pct_less_col &gt; 0.5 ~ &quot;Less than College&quot;,
+                             pct_col &gt; 0.5 ~ &quot;College and Above&quot;)) %&gt;%
+  mutate(maj_tra = case_when(pct_car &gt; 0.5 ~ &quot;Car&quot;,
+                             pct_pubtra &gt; 0.5 ~ &quot;Public Transportation&quot;,
+                             pct_bic &gt; 0.5 ~ &quot;Bicycle&quot;,
+                             pct_walk &gt; 0.5 ~ &quot;Walk&quot;,
+                             pct_tra_other &gt; 0.5 ~ &quot;Other&quot;,
+                             TRUE ~ &quot;No Majority&quot;)) %&gt;%
+  mutate(maj_race = case_when(pct_nh_white &gt; 0.5 ~ &quot;nh_white&quot;,
+                             pct_nh_black &gt; 0.5 ~ &quot;nh_black&quot;,
+                             pct_nh_asian &gt; 0.5 ~ &quot;nh_asian&quot;,
+                             pct_h_latino &gt; 0.5 ~ &quot;hs_latino&quot;,
+                             pct_nh_race_other &gt; 0.5 ~ &quot;nh_other&quot;,
+                             TRUE ~ &quot;no_majority&quot;)) %&gt;%
+  select(tot_popE, med_incomeE, mon_housE, pct_ten, pct_foreign, maj_edu, maj_tra, maj_race)
 
-counties2018</code></pre>
-<pre><code>## # A tibble: 3,220 x 7
-##    tot_popE med_incomeE mon_housE pct_ten pct_pubtra maj_sex maj_white
-##       &lt;dbl&gt;       &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;   &lt;lgl&gt;    
-##  1    47086       19393     18299   0.474   0.000127 Female  FALSE    
-##  2    12028       20041      4563   0.169   0        Female  TRUE     
-##  3     8321       19418      3164   0.216   0.00108  Male    TRUE     
-##  4    23480       22040      8706   0.191   0.000724 Male    TRUE     
-##  5    10129       22108      3658   0.146   0        Male    TRUE     
-##  6    21278       22171      8224   0.348   0.00108  Female  TRUE     
-##  7     7346       16398      2530   0.251   0        Female  FALSE    
-##  8    13714       22256      4172   0.100   0        Male    TRUE     
-##  9    35787       25982     13074   0.226   0.00179  Female  FALSE    
-## 10     7372       16076      3055   0.378   0        Female  FALSE    
-## # … with 3,210 more rows</code></pre>
+tractLA2018</code></pre>
+<pre><code>## # A tibble: 2,346 x 8
+##    tot_popE med_incomeE mon_housE pct_ten pct_foreign maj_edu maj_tra   maj_race
+##       &lt;dbl&gt;       &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;   
+##  1     5619       32500      1820   0.157       0.237 &lt;NA&gt;    No Major… nh_black
+##  2     4424       29242      1390   0.485       0.441 &lt;NA&gt;    No Major… hs_lati…
+##  3     7441       26467      1886   0.193       0.339 &lt;NA&gt;    No Major… hs_lati…
+##  4     8192       38699      2318   0.308       0.331 &lt;NA&gt;    No Major… hs_lati…
+##  5     7311       42620      2208   0.275       0.356 &lt;NA&gt;    No Major… hs_lati…
+##  6     3742       28333      1334   0.622       0.388 &lt;NA&gt;    No Major… no_majo…
+##  7     3846       23549      1469   0.650       0.425 &lt;NA&gt;    No Major… no_majo…
+##  8     3908       25980      1572   0.495       0.423 &lt;NA&gt;    No Major… no_majo…
+##  9     4914       37529      1575   0.162       0.272 &lt;NA&gt;    No Major… no_majo…
+## 10     3562       45625      1530   0.608       0.118 &lt;NA&gt;    No Major… nh_white
+## # … with 2,336 more rows</code></pre>
 </div>
 <div id="saving-the-data" class="section level2">
 <h2>Saving the data</h2>
-<p>My final dataset has 3,220 rows, which mean my analysis will include 3,220 counties across the US.</p>
+<p>My final dataset has 2,346 rows, which mean my analysis will include 2,346 census tracts in the LA county.</p>
 <p>Finally, I’ll save my data as a CSV file.</p>
-<pre class="r"><code>write_csv(counties2018, &quot;counties2018.csv&quot;)</code></pre>
+<pre class="r"><code>write_csv(tractLA2018, &quot;tractLA2018&quot;)</code></pre>
 </div>
 
 

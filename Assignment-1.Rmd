@@ -16,61 +16,96 @@ library(dplyr)
 area_vars_2018 <- load_variables (2018, "acs5")
 ```
 
-I decided to explore the relationship between percentage of tenant population (who are without homeownership), rate of using public transportation to work, monthly housing cost, median income, sex, and race in the US counties (so my unit of analysis is the "county"). The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).
-
 1. Total population (continuous) : tot_pop
-2. Percentage of the tenant population (continuous) : pct_ten
-3. Percentage of the population using public transport to work (continuous) : pct_pubtra
-4. Median Income (continuous) : med_income
-5. Monthly Housing Cost (continuous) : mon_hous
-6. Majority Sex (categorical) : maj_sex
-7. Whether the majority of the population is White or Not (categorical) : maj_white
+2. Median Income (continuous) : med_income
+3. Monthly Housing Cost (continuous) : mon_hous
+4. Percentage of the tenant population (continuous) : pct_ten
+5. Percentage of the foreign-born population (continuous) : pct_foreign
+6. Majority Level of Education (categorical) : maj_edu
+7. Majority Mode of Transportation (categorical) : maj_tra
+8. Majority race of the population (not Hispanic or Latino) (categorical) : maj_race
 
 ```{r message=FALSE}
 pop_vars <- c(tot_pop = "B01003_001",
-              tot_ten = "B07013_003", 
-              tot_pubtra = "B08006_008",
               med_income = "B21004_001",
               mon_hous = "B25104_001", 
-              male_pop = "B01001_002",
-              female_pop = "B01001_026",
-              white_pop = "B02001_002")
+              tot_ten = "B07013_003", 
+              tot_foreign = "B05002_013",
+              tot_less_high = "B06009_002",
+              tot_high = "B06009_003",
+              tot_col = "B06009_004",
+              tot_bac = "B06009_005",
+              tot_gra = "B06009_006",
+              tot_car = "B08006_002",
+              tot_pubtra = "B08006_008",
+              tot_bic = "B08006_014",
+              tot_walk = "B08006_015",
+              tot_tra_other = "B08006_016",
+              nh_white_alone = "B03002_003",
+              nh_black_AA_alone = "B03002_004",
+              nh_asian_alone =  "B03002_006",
+              h_latino = "B03002_012",
+              nh_race_other = "B03002_008")
 
-counties2018 <- get_acs(geography = "county",
+tractLA2018 <- get_acs(geography = "tract",
                         variables = pop_vars,
                         output = "wide",
+                        state = "CA",
+                       county = "Los Angeles",
                         year = 2018,
                         survey = "acs5")
 ```
 
 ## Calculating new variables
 
-After finding my variables and filtering them to the level of county, I want to calculate the percentage of the tenants and the percentage of people using public transportation to work in each county. I also calculate the percentage of the population that are white. I then create a categorical variable with two categories: "TRUE" if at least half the population are white, and "FALSE" otherwise. 
-
-I also manipulate the sex categorical variable so that any county with one gender (male or female) greater than 50% will be designated as the majority sex. I leave total population, median income and monthly housing cost as they are, as there's nothing to change.
-
 ```{r}
-counties2018 <- counties2018 %>%
+tractLA2018 <- tractLA2018 %>%
   mutate(pct_ten = tot_tenE / tot_popE,
+         pct_foreign = tot_foreignE / tot_popE,
+         pct_less_high = tot_less_highE / tot_popE,
+         pct_high = tot_highE / tot_popE,
+         pct_col = tot_colE / tot_popE,
+         pct_bac = tot_bacE / tot_popE,
+         pct_gra = tot_graE / tot_popE,
+         pct_car = tot_carE / tot_popE,
          pct_pubtra = tot_pubtraE / tot_popE,
-         pct_male = male_popE / tot_popE,
-         pct_female = female_popE / tot_popE,
-         maj_white = white_popE / tot_popE > 0.5) %>% 
-  mutate(maj_sex = case_when(pct_male > 0.5 ~ "Male",
-                             pct_female > 0.5 ~ "Female")) %>%
-  select(tot_popE, med_incomeE, mon_housE, pct_ten, pct_pubtra, maj_sex, maj_white)
+         pct_bic = tot_bicE / tot_popE,
+         pct_walk = tot_walkE / tot_popE,
+         pct_tra_other = tot_tra_otherE / tot_popE,
+         pct_nh_white = nh_white_aloneE / tot_popE,
+         pct_nh_black = nh_black_AA_aloneE / tot_popE,
+         pct_h_latino = h_latinoE / tot_popE,
+         pct_nh_asian = nh_asian_aloneE / tot_popE,
+         pct_nh_race_other = nh_race_otherE / tot_popE) %>%
+  mutate(pct_less_col = pct_less_high + pct_less_high,
+         pct_col = pct_col + pct_bac) %>%
+  mutate(maj_edu = case_when(pct_less_col > 0.5 ~ "Less than College",
+                             pct_col > 0.5 ~ "College and Above")) %>%
+  mutate(maj_tra = case_when(pct_car > 0.5 ~ "Car",
+                             pct_pubtra > 0.5 ~ "Public Transportation",
+                             pct_bic > 0.5 ~ "Bicycle",
+                             pct_walk > 0.5 ~ "Walk",
+                             pct_tra_other > 0.5 ~ "Other",
+                             TRUE ~ "No Majority")) %>%
+  mutate(maj_race = case_when(pct_nh_white > 0.5 ~ "nh_white",
+                             pct_nh_black > 0.5 ~ "nh_black",
+                             pct_nh_asian > 0.5 ~ "nh_asian",
+                             pct_h_latino > 0.5 ~ "hs_latino",
+                             pct_nh_race_other > 0.5 ~ "nh_other",
+                             TRUE ~ "no_majority")) %>%
+  select(tot_popE, med_incomeE, mon_housE, pct_ten, pct_foreign, maj_edu, maj_tra, maj_race)
 
-counties2018
+tractLA2018
 ```
 
 ## Saving the data
 
-My final dataset has 3,220 rows, which mean my analysis will include 3,220 counties across the US.
+My final dataset has 2,346 rows, which mean my analysis will include 2,346 census tracts in the LA county.
 
 Finally, I'll save my data as a CSV file.
 
 ```{r}
-write_csv(counties2018, "counties2018.csv")
+write_csv(tractLA2018, "tractLA2018")
 ```
 
 
