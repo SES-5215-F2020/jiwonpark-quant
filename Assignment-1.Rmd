@@ -12,6 +12,8 @@ library(dplyr)
 
 ## Variables Used
 
+I decided to explore employment trends at the census tract level in Los Angeles County, California (so my unit of analysis is the census tract). I chose the following variables from ACS-5 year summary 2018. The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).
+
 ```{r}
 area_vars_2018 <- load_variables (2018, "acs5")
 ```
@@ -57,6 +59,10 @@ tractLA2018 <- get_acs(geography = "tract",
 ```
 
 ## Calculating new variables
+
+After finding my variables and filtering them to census tracts in Los Angeles county, I want to calculate the percentage of tenant population in each census tract and the percentage of foreign-born population. 
+
+I also pull up detailed variables for my education, transportation, and race/ethnicity categorical variables, and manipulate them so that any tract with one sub-category greater than 50% will be designated as the majority.  
 
 ```{r}
 tractLA2018 <- tractLA2018 %>%

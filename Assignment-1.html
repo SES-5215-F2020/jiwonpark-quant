@@ -374,6 +374,7 @@ library(tidyverse)
 library(dplyr)</code></pre>
 <div id="variables-used" class="section level2">
 <h2>Variables Used</h2>
+<p>I decided to explore employment trends at the census tract level in Los Angeles County, California (so my unit of analysis is the census tract). I chose the following variables from ACS-5 year summary 2018. The reason behind this choice is because estimates for small geographic areas with populations less than 20,000 people are only available for the ACS5 (five-year data).</p>
 <pre class="r"><code>area_vars_2018 &lt;- load_variables (2018, &quot;acs5&quot;)</code></pre>
 <ol style="list-style-type: decimal">
 <li>Total population (continuous) : tot_pop</li>
@@ -416,6 +417,8 @@ tractLA2018 &lt;- get_acs(geography = &quot;tract&quot;,
 </div>
 <div id="calculating-new-variables" class="section level2">
 <h2>Calculating new variables</h2>
+<p>After finding my variables and filtering them to census tracts in Los Angeles county, I want to calculate the percentage of tenant population in each census tract and the percentage of foreign-born population.</p>
+<p>I also pull up detailed variables for my education, transportation, and race/ethnicity categorical variables, and manipulate them so that any tract with one sub-category greater than 50% will be designated as the majority.</p>
 <pre class="r"><code>tractLA2018 &lt;- tractLA2018 %&gt;%
   mutate(pct_ten = tot_tenE / tot_popE,
          pct_foreign = tot_foreignE / tot_popE,
