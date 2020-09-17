@@ -1,0 +1,324 @@
+---
+title: "Quant Assignment-2"
+author: "Jiwon Park"
+date: '2020 9 17 '
+output: html_document
+---
+## Load Packages
+
+```{r message = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+```
+
+## Load tract-level data
+For the second assignment, I changed the level of analysis from "county" to "census tracts". I filtered the state to Massachusetts(MA), and included all the counties in the state. The reason why I changed my unit of analysis was mainly because it was difficult to explore significant variance between counties when I aggregated the data. For example, the number of counties where the citizenship status is 'US-born' was more than 90%, which leaves very little room for further exploration. 
+
+Also, in terms of variables, I changed the total four variables. I changed one categorical variable ('Whether the majority of the population is US-born or not') to the continuous variable ('Percentage of the foreign-born population') to further explore the difference of majority citizenship status in sample tracts. I also changed one categorical variable ('Whether the majority of the population is white or not') to include a more diverse race. I also changed a continuous variable ('Percentage of the population using public transportation to work') to a categorical variable ('Whether more than 10% of the population commute by non-car'). The reason for the change is that I found almost no counties in the US had a public transportation share of more than 50%. The situation was also nearly the same at the tract level. Here, I combined the use of public transportation, bicycle, walking, or others to define 'non-cars'. 
+
+In the CSV file, there is one more variable, 'maj_internet' which means 'whether the majority of the population has internet access'. However, I abandoned this variable in the end as there was no census tract where the majority of the population don't have access to the internet.
+
+### Final List of Variables for Assignment2 (edited from Assignment 1) :
+
+1. Total population (continuous) : tot_pop
+2. Median income (continuous) : med_income
+3. Monthly housing cost (continuous) : mon_hous
+4. Percentage of the tenant population (continuous) : pct_ten
+5. Percentage of the foreign-born population (continuous) : pct_foreign
+6. Whether more than 10% of population commute by Non-Car (categorical) : n_car_10
+7. Majority race of the population (not Hispanic or Latino) (categorical) : maj_race
+
+```{r message = FALSE}
+tractMA2018 <- read.csv("tractMA2018.csv") 
+  attach(tractMA2018)
+```
+
+## Summary Statistics
+```{r}
+tot_pop_summary <-  summary(tot_popE)
+tot_pop_sd <- sd(tot_popE, na.rm = TRUE)
+tot_pop_mean_int <- t.test(tot_popE)
+
+med_income_summary <- summary(med_incomeE)
+med_income_sd <- sd(med_incomeE, na.rm = TRUE)
+med_income_mean_int <- t.test(med_incomeE)
+
+mon_hous_summary <- summary(mon_housE)
+mon_hous_sd <- sd(mon_housE, na.rm = TRUE)
+mon_hous_mean_int <- t.test(mon_housE)
+
+pct_ten_summary <- summary(pct_ten)
+pct_ten_sd <- sd(pct_ten, na.rm = TRUE)
+pct_ten_mean_int <- t.test(pct_ten)
+
+pct_foreign_summary <- summary(pct_foreign)
+pct_foreign_sd <- sd(pct_foreign, na.rm = TRUE)
+pct_foreign_mean_int <- t.test(pct_foreign)
+```
+
+
+## Distribution of Continuous Variables
+```{r}
+
+summary_table <- tibble(
+  Statistc = c("Sample mean",
+               "Median",
+               "Standard deviation",
+               "Interquartile range",
+               "Population mean (95% confidence)"),
+  
+    'Total Population' = c(prettyNum(tot_pop_summary["Mean"]),
+                          tot_pop_summary["Median"],
+                          prettyNum(tot_pop_sd),
+                          paste(tot_pop_summary["1st Qu."], "to",
+                                tot_pop_summary["3rd Qu."]),
+                          paste(prettyNum(tot_pop_mean_int$conf.int[1]), "to",
+                               prettyNum(tot_pop_mean_int$conf.int[2]))),
+  
+    'Median Income' = c(prettyNum(med_income_summary["Mean"]),
+                        med_income_summary["Median"],
+                        prettyNum(med_income_sd),
+                        paste(med_income_summary["1st Qu."],"to", 
+                                 med_income_summary["3rd Qu."]),
+                        paste(prettyNum(med_income_mean_int$conf.int[1]), "to",
+                        prettyNum(med_income_mean_int$conf.int[2]))),
+  
+    'Monthly Housing Cost' = c(prettyNum(mon_hous_summary["Mean"]),
+                              mon_hous_summary["Median"],
+                              prettyNum(mon_hous_sd),
+                              paste(mon_hous_summary["1st Qu."], "to",
+                                   mon_hous_summary["3rd Qu."]),
+                              paste(prettyNum(mon_hous_mean_int$conf.int[1]), "to",
+                              prettyNum(mon_hous_mean_int$conf.int[2]))),
+  
+     'Percentage Tenant' = c(paste(prettyNum(pct_ten_summary["Mean"]*100, 
+                                           digits=3),"%"),
+                           paste(prettyNum(pct_ten_summary["Median"]*100,
+                                           digits=3),"%"),
+                           paste(prettyNum(pct_ten_sd*100, digits=3),"%"),
+                           paste(prettyNum(pct_ten_summary["1st Qu."]*100, 
+                                           digits=3),
+                                 "% to", 
+                                 prettyNum(pct_ten_summary["3rd Qu."]*100, 
+                                           digits=3), "%"),
+                           paste(prettyNum(pct_ten_mean_int$conf.int[1]*100,
+                                           digits=3), "% to",
+                                 prettyNum(pct_ten_mean_int$conf.int[2]*100,
+                                           digits=3), "%")),
+  
+     'Percentage Foreign Born' = c(paste(prettyNum(pct_foreign_summary["Mean"]*100, 
+                                           digits=3),"%"),
+                                   paste(prettyNum(pct_foreign_summary["Median"]*100,
+                                           digits=3),"%"),
+                                   paste(prettyNum(pct_foreign_sd*100, digits=3),"%"),
+                                   paste(prettyNum(pct_foreign_summary["1st Qu."]*100, 
+                                           digits=3),
+                                 "% to", 
+                                 prettyNum(pct_foreign_summary["3rd Qu."]*100, 
+                                           digits=3), "%"),
+                           paste(prettyNum(pct_foreign_mean_int$conf.int[1]*100,
+                                           digits=3), "% to",
+                                 prettyNum(pct_foreign_mean_int$conf.int[2]*100,
+                                           digits=3), "%")))
+
+knitr::kable(summary_table, caption = "Characteristics of Census Tracts of 14 Counties in Massachusetts")
+
+```
+
+## Histograms of Continuous Variables
+
+
+#### Total Population
+
+```{r}
+ggplot(tractMA2018, aes(x = tot_popE)) + 
+  geom_histogram(color = "gray", bandwidth = 300) +
+  theme_bw() +
+  scale_x_continuous(name = "Total Population in Tracts") + 
+  scale_y_continuous(name = "Number of Tracts in Sample") + 
+  annotate("text", x = 10000, y = 120, size = 3,
+           label = paste("Total population mean (95% confidence): ", prettyNum(tot_pop_mean_int$conf.int[1]), "to", prettyNum(tot_pop_mean_int$conf.int[2]),
+                         "\nSample mean: ", prettyNum(tot_pop_summary["Mean"]),
+                         "\nSample median: ", prettyNum(tot_pop_summary["Median"]),
+                         "\nSample standard deviation: ", prettyNum(tot_pop_sd),
+                         "\nSample interquatile range: ", prettyNum(tot_pop_summary["1st Qu."]), "to", prettyNum(tot_pop_summary["3rd Qu."])))
+```
+In 2018, the average population of tracts (state:MA, counties:all) included in the sample was around 4621. The population of half of those tracts were between 3298 and 5837. The overall average of total population was likely to be in the range from 4529 to 4714. The diagram is slightly right-skewed, indicating that there were a few tracts that have much more population than others.
+
+#### Median Income
+
+```{r}
+ggplot(tractMA2018, aes(x = med_incomeE)) + 
+  geom_histogram(color = "gray") +
+  theme_bw() +
+  scale_x_continuous(name = "Median Income in Tracts") + 
+  scale_y_continuous(name = "Number of Tracts in Sample") +
+  annotate("text", x = 80000, y = 120, size = 3,
+           label = paste("Median income mean (95% confidence): ", prettyNum(med_income_mean_int$conf.int[1]), "to", prettyNum(med_income_mean_int$conf.int[2]),
+                         "\nSample mean: ", prettyNum(med_income_summary["Mean"]),
+                         "\nSample median: ", prettyNum(med_income_summary["Median"]),
+                         "\nSample standard deviation: ", prettyNum(med_income_sd),
+                         "\nSample interquatile range: ", med_income_summary["1st Qu."], "to",
+                                   med_income_summary["3rd Qu."]))
+```
+
+In 2018, the median income of tracts (state:MA, counties:all) included in the sample was around $39221. The median income of half of those tracts were between 28982.25 and 47765.25 dollars. The overall average of median income was likely to be in the range from 38425.13 to 40017.25 dollars. The diagram is slightly right-skewed, indicating that there were a few tracts that have much higher median income than others.
+
+#### Monthly Housing Cost
+
+```{r}
+ggplot(tractMA2018, 
+       aes(x = mon_housE)) + 
+  theme_bw() + 
+  geom_histogram(color = "gray", binwidth = 100) +
+  theme(text = element_text(size=10)) +
+  scale_x_continuous(name = "Monthly Housing Cost in Tracts") + 
+  scale_y_continuous(name = "Number of Tracts in Sample") + 
+  annotate("text", x = 3330, y = 80, size = 3,
+           label = paste("Monthly housing cost mean (95% confidence): ", prettyNum(mon_hous_mean_int$conf.int[1]), "to", prettyNum(mon_hous_mean_int$conf.int[2]),
+                         "\nSample mean: ", prettyNum(mon_hous_summary["Mean"]),
+                         "\nSample median: ", prettyNum(mon_hous_summary["Median"]),
+                         "\nSample standard deviation: ", prettyNum(mon_hous_sd),
+                         "\nSample interquatile range: ", mon_hous_summary["1st Qu."], "to",
+                                   mon_hous_summary["3rd Qu."]))
+```
+In 2018, the average monthly housing costs of tracts (state:MA, counties:all) included in the sample was around $1760.429. The monthly housing cost of half of those tracts were between 1299.25 to 2233 dollars. The overall average of monthly housing cost was likely to be in the range from 1725.804 to 1795.054 dollars. The diagram is fairly a bell-curve. However, it is notable to see the outliers near the zero dollar, which indicate there are tracts where monthly housing cost is very low. This might derive from the difference in the ratio of homeowners and tenants in different tracts. I will explore this further later in the correlation test.  
+
+#### Percentage of the Tenant Population
+
+```{r}
+ggplot(tractMA2018, 
+       aes(x = pct_ten)) + 
+  theme_light() + 
+  geom_histogram(color = "gray") +
+  theme(text = element_text(size=10)) +
+  scale_x_continuous(name = "Percentage of Tenant Population",
+                     breaks = breaks <- seq(0, 1, by = 0.1),
+                     labels = paste(breaks*100, "%", sep = "")) + 
+  scale_y_continuous(name = "Number of Tracts in Sample") + 
+  annotate("text", x = 0.6, y = 100, size = 3,
+           label = paste("Percentage of Tenant Population (95% confidence): ", prettyNum(pct_ten_mean_int$conf.int[1]*100, digits=3), "to", prettyNum(pct_ten_mean_int$conf.int[2]*100, digits=3),
+                         "\nSample mean: ", prettyNum(pct_ten_summary["Mean"]*100, digits=3, "%"),
+                         "\nSample median: ", prettyNum(pct_ten_summary["Median"]*100, digits=3, "%"),
+                         "\nSample standard deviation: ", prettyNum(pct_ten_sd*100, digits = 3, "%"),
+                         "\nSample interquatile range: ", prettyNum(pct_ten_summary["1st Qu."]*100, 
+                                           digits=3), "to",prettyNum(pct_ten_summary["3rd Qu."]*100, 
+                                           digits=3, "%")))
+```
+In 2018, the percentage of tenant population of tracts (state:MA, counties:all) included in the sample was around 34.3%. The percentage of tenant population of half of those tracts were between 13.4% and 52.7%. The overall average of median income was likely to be in the range from 33% to 35.5%. The diagram is right-skewed, indicating that lots of the sample tracts have low percentage of tenants.
+
+#### Percentage of the Foreign-Born Population
+
+```{r}
+ggplot(tractMA2018, 
+       aes(x = pct_foreign)) + 
+  theme_bw() + 
+  geom_histogram(color = "gray") +
+  theme(text = element_text(size=10)) +
+  scale_x_continuous(name = "Percentage of Foreing Born Population",
+                     breaks = breaks <- seq(0, 1, by = 0.1),
+                     labels = paste(breaks*100, "%", sep = "")) + 
+  scale_y_continuous(name = "Number of Tracts in Sample") +
+  annotate("text", x = 0.6, y = 150, size = 3,
+           label = paste("Percentage of Foreing Born Population (95% confidence): ", prettyNum(pct_foreign_mean_int$conf.int[1]*100, digits=3), "to", prettyNum(pct_foreign_mean_int$conf.int[2]*100, digits=3),
+                         "\nSample mean: ", prettyNum(pct_foreign_summary["Mean"]*100, digits=3),
+                         "\nSample median: ", prettyNum(pct_foreign_summary["Median"]*100, digits=3),
+                         "\nSample standard deviation: ", prettyNum(pct_foreign_sd*100, digits = 3),
+                         "\nSample interquatile range: ", prettyNum(pct_foreign_summary["1st Qu."]*100, 
+                                           digits=3), "to",prettyNum(pct_foreign_summary["3rd Qu."]*100, 
+                                           digits=3)))
+```
+
+In 2018, the percentage of foreign-born population of tracts (state:MA, counties:all) included in the sample was around 16.8%. The percentage of foreign-born population of half of those tracts were between 6.62% and 24%. The overall average of the percentage of foreign-born population was likely to be in the range from 16.1% to 17.4%. The diagram is right-skewed, indicating that there a lot of tracts that have low percentage of foreign-born population.
+
+### Distribution of Categorical Variables
+
+
+#### Whether more than 10% of population commute by non-car (categorical)
+
+```{r}
+non_cars <- unique(n_car_10)
+non_cars
+
+table(tractMA2018$n_car_10)
+```
+
+```{r}
+more_than_10 <- t.test(tractMA2018$n_car_10 == non_cars[1])
+less_than_10 <- t.test(tractMA2018$n_car_10 == non_cars[2])
+
+shares <- tibble(Transportation = c("More than 10% of population commute by non-car", 
+                            "Less than 10% of population commute by non-car"), 
+                 Share = c(more_than_10$estimate, 
+                           less_than_10$estimate),
+                 Low = c(more_than_10$conf.int[1],
+                         less_than_10$conf.int[1]),
+                 High = c(more_than_10$conf.int[2],
+                        less_than_10$conf.int[2]))
+
+shares
+```
+
+```{r}
+ggplot(shares, aes(x = Transportation, y = Share, ymin = Low, ymax = High)) +
+  geom_bar(stat = "identity") +
+  geom_errorbar(width = 0.5) +
+  theme_bw() +
+  scale_x_discrete(name = "The ratio of population commuting by non-car",
+                   labels = c("Less than 10% of population commute by non-car",
+                              "More than 10% of population commute by non-car")) +
+  scale_y_continuous(name = "Share of Census Tracts in Sample (error bars represent\n 95-percent confidence intercal)",
+                      breaks = c(seq(0, 1, by = 0.1)),  
+                      label = c(labels = paste(seq(0, 100, by = 10), "%", sep = "")))
+```
+In 2018, in nearly 70% of the census tracts in Massachusetts, the proportion of people using non-car transportation (public transportation, bicycle, walking and others) to commute accounted for less than 10%. The ratio of census tracts in Massachusetts that had more than 10% of population commuting by non-car accounted for only 30%.
+
+#### Majority race of the population (not Hispanic or Latino) (categorical)
+
+```{r}
+Race <- unique(maj_race)
+Race
+```
+
+```{r}
+nh_white <- t.test(tractMA2018$maj_race == Race[1])
+nh_black <- t.test(tractMA2018$maj_race == Race[4])
+hs_latino <- t.test(tractMA2018$maj_race == Race[3])
+nh_asian <- t.test(tractMA2018$maj_race == Race[5])
+no_majority <- t.test(tractMA2018$maj_race == Race[2])
+
+shares2 <- tibble(Race = c("nh_white",
+                                     "nh_black", 
+                                     "hs_latino", 
+                                     "nh_asian",
+                                     "no_majority"),
+                 Share = c(nh_white$estimate,
+                             nh_black$estimate,
+                             hs_latino$estimate,
+                             nh_asian$estimate,
+                             no_majority$estimate),
+                 Low = c(nh_white$conf.int[1],
+                         nh_black$conf.int[1],
+                         hs_latino$conf.int[1],
+                         nh_asian$conf.int[1],
+                         no_majority$conf.int[1]),
+                 High = c(nh_white$conf.int[2],
+                         nh_black$conf.int[2],
+                         hs_latino$conf.int[2],
+                         nh_asian$conf.int[2],
+                         no_majority$conf.int[2]))
+shares2
+```
+
+```{r}
+ggplot(shares2, aes(Race, y=Share, ymin = Low, ymax = High))+
+  geom_bar(stat="identity") +
+  geom_errorbar(width=0.5) +
+  theme_bw() +
+  scale_x_discrete(name = "Majority Race of the Population") +
+  scale_y_continuous(name = "Share of Census Tracts in Sample (error bars represent\n 95-percent confidence intercal)",
+                      breaks = c(seq(0, 1, by = 0.1)),  
+                      labels = c(labels = paste(seq(0, 100, by = 10), "%", sep = "")))
+```
+In 2018, in nearly 80% of the census tracts in Massachusetts, the majority race/ethnicity was white. In about 4% of the census tracts in Massachusetts, hispanic-latino was the majority of population. There were very few tracts where the majority race is Black or Asian (2% and 0.4% for each). The ratio of tracts where there is no majority race/ethnicity was about 11%.
