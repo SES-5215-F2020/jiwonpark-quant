@@ -1,0 +1,551 @@
+---
+title: "Quant_3rd_final"
+author: "Jiwon Park"
+date: '2020 9 23 '
+output: 
+  html_document:
+    theme : cosmo
+    toc : true
+    toc_depth : 4
+    toc_float : true 
+---
+## Load Packages
+```{r message = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+```
+
+## Load Data
+```{r message = FALSE}
+tractMA2018 <- read.csv("tractMA2018_3rd.csv")
+```
+
+The sample included census tracts of all counties in Massachusetts. Therefore, my level of analysis here is "tract".
+
+I edited one categorical variable from the second assignment, which is the "Transportation Mode With the Highest Modal Share (categorical)". I changed it from the variable "Whether more than 10% of population commute by Non-Car" to make this variable have multiple sub-categories. I also decided to not use the variable "Total population (continuous)" as this is not directly related to the question I have. 
+
+Therefore, the variables included in this assignment are : 
+
+1. Median Income (continuous) : med_income
+
+2. Monthly Housing Cost (continuous) : mon_hous
+
+3. Percentage of Tenant Population (continuous) : pct_ten
+
+4. Percentage of Foreign-born Population (continuous) : pct_foreign
+
+5. Whether the Majority of Population is Foreign-born or Not : maj_foreign
+
+6. Transportation Mode With the Highest Modal Share (categorical) : maj_tra
+
+7. Race/Ethnicity With the Highest Ratio (not Hispanic or Latino) (categorical) : maj_race
+
+
+## Relationships between Two Continuous Variables (Pearson's Correlation)
+
+
+### 1. Relationships between Median Income and Percentage of Tenant Population
+```{r}
+correlation1 <- cor.test(tractMA2018$med_incomeE, tractMA2018$pct_ten)
+correlation1
+```
+
+The relationship between median income and percentage of tenant population in the tracts of Massachusetts : weak (< |.5|), but statistically significant (p-value<0.05), negative correlation at a 95% confidence level.
+
+
+### 2. Relationships between Median Income and Monthly Housing Cost
+```{r}
+correlation2 <- cor.test(tractMA2018$med_incomeE, tractMA2018$mon_housE)
+correlation2
+```
+
+The relationship between median income and monthly housing cost in the tracts of Massachusetts : weak (< |.3|), but statistically significant(p-value<0.05), positive correlation at a 95% confidence level.
+
+
+### 3. Relationships between Median Income and Nativity
+```{r}
+correlation3 <- cor.test(tractMA2018$med_income, tractMA2018$pct_foreign)
+correlation3
+```
+
+The relationship between median income and percentage of foreign-born population in the tracts of Massachusetts : very weak (< |.3|), but statistically significant(p-value<0.05), negative correlation at a 95% confidence level.
+
+
+### 4. Relationships between Percentage of Tenant Population and Monthly Housing Cost
+```{r}
+correlation4 <- cor.test(tractMA2018$pct_ten, tractMA2018$mon_housE)
+correlation4
+```
+
+The relationship between percentage of tenant population and monthly housing cost in the tracts of Massachusetts : extremely weak (< |.2|), but statistically significant(p-value<0.05), negative correlation at a 95% confidence level.
+
+
+### 5. Relationships between Nativity and Monthly Housing Cost
+```{r}
+correlation5 <- cor.test(tractMA2018$pct_foreign, tractMA2018$mon_housE)
+correlation5
+```
+
+The relationship between percentage of foreign-born population and monthly housing cost in the tracts of Massachusetts : extremely weak (< |.1|), but statistically significant(p-value<0.05), negative correlation at a 95% confidence level.
+
+
+### 6. Relationships between Percentage of Tenant Population and Nativity
+```{r}
+correlation6 <- cor.test(tractMA2018$pct_ten, tractMA2018$pct_foreign)
+correlation6
+```
+
+The relationship between percentage of tenant population and percentage of foreign-born population in the tracts of Massachusetts : moderate (> |.6|), statistically significant(p-value<0.05), positive correlation at a 95% confidence level.
+
+
+### 1-1. A dot plot showing the relationships between median income and percentage of tenant population
+```{r}
+ggplot(tractMA2018, aes(x=med_incomeE, y=pct_ten)) +
+  geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Median Income",
+                     breaks = seq(0, 100000, by = 10000),
+                     labels = paste("$", prettyNum(seq(0, 100, by = 10), big.mark = ","), "K", sep = "")) +
+  scale_y_continuous(name = "Percentage of Tenant Population", 
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10)), "%")) + 
+  ggtitle("Relationship between Median Income and Percentage of Tenant Population") +
+  theme(title = element_text(size=10, face = "bold")) + 
+  annotate("text", x = 95000, y = 0.9, size=3.5,
+           label = paste("Correlation (95-percent confidence)\n:", prettyNum(correlation1$conf.int[1], digits = 2), "to", prettyNum(correlation1$conf.int[2], digits = 2)))
+```
+
+Looking at this graph, it is understandable why the general correlation between two variables was weak. It is because the percentage of tenant population increases with high positive coefficient to the level of certain median income (around USD15,000), and then significantly drops thereafter until the median income reaches USD45,000. 
+
+### 2-1. A dot plot showing the relationships between median income and monthly housing cost
+```{r}
+ggplot(tractMA2018, aes(x=med_incomeE, y=mon_housE)) +
+  geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Median Income",
+                     breaks = seq(0, 100000, by = 20000),
+                     labels = paste("$", prettyNum(seq(0, 100000, by = 20000), big.mark = ","), sep = "")) +
+  scale_y_continuous(name = "Monthly Housing Cost",
+                     breaks = seq(0, 5000, by = 500),
+                     labels = paste( "$", prettyNum(seq(0, 5000, by = 500), big.mark = ","), sep = "")) +  
+  ggtitle("Relationship between Median Income and Monthly Housing Cost") +
+  theme(title = element_text(size=10, face = "bold")) + 
+  annotate("text", x = 95000, y = 3500, size=3.5,
+           label = paste("Correlation (95-percent confidence)\n:", prettyNum(correlation2$conf.int[1], digits = 2), "to", prettyNum(correlation2$conf.int[2], digits = 2)))
+```
+
+
+### 3-1. A dot plot showing the relationships between median income and nativity
+```{r}
+ggplot(tractMA2018, aes(x=med_incomeE, y=pct_foreign)) +
+  geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Median Income",
+                     breaks = seq(0, 100000, by = 20000),
+                     labels = paste("$", prettyNum(seq(0, 100000, by = 20000), big.mark = ","), sep = "")) +
+  scale_y_continuous(name = "Percentage of Foreign-born Population", 
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10), big.mark = ","), "%")) + 
+  ggtitle("Relationship between Median Income and Nativity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  annotate("text", x = 80000, y = 0.75, size=3.5,
+           label = paste("Correlation (95-percent confidence)\n:", prettyNum(correlation3$conf.int[1], digits = 2), "to", prettyNum(correlation3$conf.int[2], digits = 2)))
+```
+
+
+### 4-1. A dot plot showing the relationships between percentage of tenant population and monthly housing cost
+```{r}
+ggplot(tractMA2018, aes(x=mon_housE, y=pct_ten)) +
+  geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Monthly Housing Cost",
+                     breaks = seq(0, 5000, by = 500),
+                     labels = paste("$", prettyNum(seq(0, 5000, by = 500), big.mark = ","))) +
+  scale_y_continuous(name = "Percentage of Tenant Population", 
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10)), "%")) + 
+  ggtitle("Relationship between Percentage of Tenant Population and Monthly Housing Cost") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  annotate("text", x = 3700, y = 0.95, size=3.5,
+           label = paste("Correlation (95-percent confidence)\n:", prettyNum(correlation4$conf.int[1], digits = 2), "to", prettyNum(correlation4$conf.int[2], digits = 2)))
+```
+
+Looking at this graph, it is understandable that why the general correlation between two variables was extremely weak. It is interesting (especially when I understood this statistics based on my urban experience in Korea), as often homeownership is deemed to lower the housing cost for households - though there are also a lot more benefits attached to it such as the freedom from eviction. However, this plot at least implies that there is is a low correlation between the housing cost and housing tenure in the tracts of Massachusetts. I checked that monthly housing cost used here contains both cash rent and mortgage payment with this source (https://www2.census.gov/programs-surveys/acs/tech_docs/subject_definitions/2018_ACSSubjectDefinitions.pdf).
+
+
+### 5-1. A dot plot showing the relationships between monthly housing cost and nativity
+```{r}
+ggplot(tractMA2018, aes(x=mon_housE, y=pct_foreign)) +
+  geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Monthly Housing Cost",
+                     breaks = seq(0, 5000, by = 500),
+                     labels = paste("$", prettyNum(seq(0, 5000, by = 500)))) +
+  scale_y_continuous(name = "Percentage of Foreign-born Population", 
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10)), "%")) + 
+  ggtitle("Relationship between Monthly Housing Cost and Nativity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  annotate("text", x = 3700, y = 0.8, size=3.5,
+           label = paste("Correlation (95-percent confidence)\n:", prettyNum(correlation5$conf.int[1], digits = 2), "to", prettyNum(correlation5$conf.int[2], digits = 2)))
+```
+
+
+### 6-1. A dot plot showing the relationships between percentage of tenant population and nativity
+
+```{r}
+ggplot(tractMA2018, aes(x=pct_ten, y=pct_foreign)) +
+  geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Percentage of Tenant Population", 
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10)), "%")) +
+  scale_y_continuous(name = "Percentage of Foreign-born Population", 
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10)), "%")) + 
+  ggtitle("Relationship between Percentage of Tenant Population and Nativity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  annotate("text", x = 0.7, y = 0.85, size=3.5,
+           label = paste("Correlation (95-percent confidence)\n:", prettyNum(correlation6$conf.int[1], digits = 2), "to", prettyNum(correlation6$conf.int[2], digits = 2)))
+```
+
+
+## Relationships between a Continuous Variable and a Binary Variable (A two-sample t-test)
+
+
+### 1. Relationships between percentage of tenant population and nativity
+```{r}
+difference1 = t.test(pct_ten ~ maj_foreign == "TRUE", 
+                    data = tractMA2018)
+difference1
+```
+
+There is significant relationship found between the percentage of tenant population and nativity; tracts with a majority foreign-born population have a larger percentage of tenant population than majority native-born tracts do.
+
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_foreign, y = pct_ten)) +
+  geom_violin() +
+  theme_gray() +
+  scale_x_discrete(name = "Whether the majority of population is foreign-born or not") +
+  scale_y_continuous(name = "Percentage of Tenant Population",
+                     breaks = seq(0, 1, by = 0.05),
+                     labels = paste(prettyNum(seq(0, 100, by = 5), "%"))) + 
+  ggtitle("Relationships between Percentage of Tenant Population and Nativity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  annotate(geom = "text", x=1, y=difference1$estimate[1], size=3, 
+           label = paste("Mean(95% confidence):\n", prettyNum(difference1$estimate[1]*100, digits=2), "%")) + 
+  annotate(geom = "text", x=3, y=difference1$estimate[2], size=3,
+           label = paste("Mean(95% confidence):\n", prettyNum(difference1$estimate[2]*100, digits=2), "%")) + 
+  annotate("text", x = 3, y = 0.2, size=3.5,
+           label = paste("Difference in Means (95-percent confidence)\n:", prettyNum(abs(difference1$conf.int[2]*100), digits = 2), "% to", prettyNum(abs(difference1$conf.int[1]*100), digits = 2), "%"))
+  
+```
+
+
+### 2. Relationships between monthly housing cost and nativity
+```{r}
+difference2 = t.test(mon_housE ~ maj_foreign == "TRUE", 
+                    data = tractMA2018)
+difference2
+```
+
+There is significant relationship found between monthly housing cost and nativity; tracts with a majority foreign-born population have less monthly housing cost than majority native-born tracts do.
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_foreign, y = mon_housE)) +
+  geom_boxplot() + 
+  theme_gray() +
+  scale_x_discrete(name = "Whether the majority of population is foreign-born or not") +
+  scale_y_continuous(name = "Monthly Housing Cost",
+                     breaks = seq(0, 5000, by = 500),
+                     labels = paste("$", prettyNum(seq(0, 5000, by = 500), big.mark = ","))) + 
+  ggtitle("Relationships between Percentage of Monthly Housing Cost and Nativity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  annotate(geom = "text", x=1, y=difference2$estimate[1], size=3, 
+           label = paste("Mean(95% confidence):\n", "$", prettyNum(difference2$estimate[1], digits=0))) + 
+  annotate(geom = "text", x=3, y=difference2$estimate[2], size=3,
+           label = paste("Mean(95% confidence):\n", "$", prettyNum(difference2$estimate[2], digits=0))) + 
+  annotate("text", x = 2, y = 2500, size=3.5,
+           label = paste("Difference in Means (95-percent confidence)\n:", "$", prettyNum(difference2$conf.int[1], digits = 2), "to $", prettyNum(difference2$conf.int[2], digits = 2)))
+  
+```
+
+
+### 3. Relationships between median income and nativity
+```{r}
+difference3 = t.test(med_incomeE ~ maj_foreign == "TRUE", 
+                    data = tractMA2018)
+difference3
+```
+
+There is significant relationship found between median income and nativity; tracts with a majority foreign-born population have less median income than majority native-born tracts do.
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_foreign, y = med_incomeE)) +
+  geom_violin() + 
+  theme_bw() +
+  scale_x_discrete(name = "Whether the majority of population is foreign-born or not") +
+  scale_y_continuous(name = "Median Income",
+                     breaks = seq(0, 100000, by = 20000),
+                     labels = paste("$", prettyNum(seq(0, 100, by = 20)), "K", sep = "")) + 
+  ggtitle("Relationships between Median Income and Nativity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  annotate("text", x=1, y=difference3$estimate[1], size=3, 
+           label = paste("Mean(95% confidence):\n", "$", prettyNum(difference3$estimate[1], digits = 1))) + 
+  annotate("text", x=3, y=difference3$estimate[2], size=3,
+           label = paste("Mean(95% confidence):\n", "$", prettyNum(difference3$estimate[2], digits = 1))) + 
+  annotate("text", x = 2, y = 80000, size=3.5,
+           label = paste("Difference in Means (95-percent confidence)\n:", "$", prettyNum(difference3$conf.int[1], digits = 1), "to $", prettyNum(difference3$conf.int[2], digits = 1)))
+
+```
+
+This graph is specifically interesting in that the distribution of median income is highly different by nativity. 
+
+I don't test the relationship between the nativity and percentage of foreign-population, as the relationship between the two is already obvious.
+
+
+## Relationships between a Continuous Variable and a Categorical Variable with three or more levels (ANOVA)
+
+
+### 1. Relationships between percentage of tenant population and transportation mode choice
+```{r}
+anova1 <- aov (pct_ten ~ maj_tra, data = tractMA2018)
+summary(anova1)
+```
+
+There is a significant relationship between percentage of tenant population and transportation mode with the highest modal share.
+
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_tra, y = pct_ten)) +
+  geom_boxplot() +
+  theme_dark() +
+  ggtitle("Relationships between Percentage of Tenant Population and Transportation Mode Choice") +
+  theme(title = element_text(size=8, face = "bold")) + 
+  scale_x_discrete(name = "Transportation Mode with the Highest Modal Share") +
+  scale_y_continuous(name = "Percentage of Tenant Population",
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10), "%")))
+```
+
+In the tracts in MA where public transportation and walking are the transport modes with the highest share, there is a tendency that the percentage of tenant population is higher than other tracts where not. 
+
+
+### 2. Relationships between nativity and transportation mode choice
+```{r}
+anova2 <- aov (pct_foreign ~ maj_tra, data = tractMA2018)
+summary(anova2)
+```
+
+There is a significant relationship between percentage of foreign-born population and transportation mode with the highest modal share.
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_tra, y = pct_foreign)) +
+  geom_boxplot() +
+  theme_dark() +
+  ggtitle("Relationships between Nativity and Transportation Mode Choice") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  scale_x_discrete(name = "Transportation Mode with the Highest Modal Share") +
+  scale_y_continuous(name = "Percentage of Foreign-born Population",
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10), "%")))
+```
+
+
+### 3. Relationships between monthly housing cost and transportation mode choice
+```{r}
+anova3 <- aov (mon_housE ~ maj_tra, data = tractMA2018)
+summary(anova3)
+```
+
+There is a significant relationship between monthly housing cost and transportation mode with the highest modal share.
+
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_tra, y = mon_housE)) +
+  geom_boxplot() +
+  theme_dark() +
+  ggtitle("Relationships between Monthly Housing Cost and Transportation Mode Choice") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  scale_x_discrete(name = "Transportation Mode with the Highest Modal Share") +
+  scale_y_continuous(name = "Monthly Housing Cost",
+                     breaks = seq(0, 5000, by = 500),
+                     labels = paste( "$", prettyNum(seq(0, 5000, by = 500), big.mark = ","), sep = ""))
+```
+
+
+### 4. Relationships between median income and transportation mode choice
+```{r}
+anova4 <- aov (med_incomeE ~ maj_tra, data = tractMA2018)
+summary(anova4)
+```
+
+There is no statistically meaningful relationship between median income and transportation mode with the highest modal share.
+
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_tra, y = med_incomeE)) +
+  geom_boxplot() +
+  theme_dark() +
+  ggtitle("Relationships between Median Income and Transportation Mode Choice") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  scale_x_discrete(name = "Transportation Mode with the Highest Modal Share") +
+  scale_y_continuous(name = "Median Income",
+                     breaks = seq(0, 100000, by = 10000),
+                     labels = paste("$", prettyNum(seq(0, 100, by = 10)), "K", sep = ""))
+```
+
+This graph is interesting in that the tracts where walking is the highest modal share have relatively wide distribution of median income level than other modes.  
+
+
+### 5. Relationships between median income and race/ethnicity 
+```{r}
+anova5 <- aov (med_incomeE ~ maj_race, data = tractMA2018)
+summary(anova5)
+```
+
+There is a significant relationship between median income and race/ethnicity with the highest proportion.
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_race, y = med_incomeE)) +
+  geom_boxplot() +
+  theme_bw() +
+  ggtitle("Relationships between Median Income and Race/Ethnicity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  scale_x_discrete(name = "Race/Ethnicity With the Highest Proportion") +
+  scale_y_continuous(name = "Median Income",
+                     breaks = seq(0, 100000, by = 20000),
+                     labels = paste("$", prettyNum(seq(0, 100, by = 20)), "K", sep = ""))
+```
+
+
+### 6. Relationships between monthly housing cost and race/ethnicity 
+```{r}
+anova6 <- aov (mon_housE ~ maj_race, data = tractMA2018)
+summary(anova6)
+```
+
+There is a significant relationship between monthly housing cost and race/ethnicity with the highest proportion.
+
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_race, y = mon_housE)) +
+  geom_boxplot() +
+  theme_dark() +
+  ggtitle("Relationships between Monthly Housing Cost and Race/Ethnicity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  scale_x_discrete(name = "Race/Ethnicity With the Highest Proportion") +
+  scale_y_continuous(name = "Monthly Housing Cost",
+                     breaks = seq(0, 5000, by = 500),
+                     labels = paste("$", prettyNum(seq(0, 5000, by = 500), big.mark = ",")))
+```
+
+### 7. Relationships between nativity and race/ethnicity 
+```{r}
+anova7 <- aov (pct_foreign ~ maj_race, data = tractMA2018)
+summary(anova7)
+```
+
+There is a significant relationship between percentage of foreign-born population and race/ethnicity with the highest proportion.
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_race, y = pct_foreign)) +
+  geom_boxplot() +
+  theme_dark() +
+  ggtitle("Relationships between Nativity and Race/Ethnicity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  scale_x_discrete(name = "Race/Ethnicity With the Highest Proportion") +
+  scale_y_continuous(name = "Percentage of Foreign-born Population", 
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10)), "%"))
+```
+
+
+### 8. Relationships between percentage tenant population and race/ethnicity 
+```{r}
+anova8 <- aov (pct_ten ~ maj_race, data = tractMA2018)
+summary(anova8)
+```
+
+There is a significant relationship between percentage of tenant population and race/ethnicity with the highest proportion.
+
+
+```{r}
+ggplot(tractMA2018, aes(x = maj_race, y = pct_ten)) +
+  geom_boxplot() +
+  theme_dark() +
+  ggtitle("Relationships between Percentage of Tenant Population and Race/Ethnicity") +
+  theme(title = element_text(size=9, face = "bold")) + 
+  scale_x_discrete(name = "Race/Ethnicity With the Highest Proportion") +
+  scale_y_continuous(name = "Percentage of Tenant Population", 
+                     breaks = seq(0, 1, by = 0.1),
+                     labels = paste(prettyNum(seq(0, 100, by = 10)), "%"))
+```
+
+This graph is intriguing in that the percentage of tenant population is relatively low in the tracts where non-hispanic white is the race/ethnicity with the highest ratio.
+
+
+## Relationships between Two Categorical Variables (A Chi-Square Test)
+
+
+### 1. Relationships between race/ethnicity and transportation mode choice
+```{r}
+chi_sq1 <- chisq.test(tractMA2018$maj_race, tractMA2018$maj_tra == "Car")
+chi_sq1
+```
+
+```{r}
+chi_sq1$observed
+```
+
+Here are the values I observe when I assign the value "Car" for the variable "transport mode with the highest modal share". I see that the non-hispanic other and no majority categories violate the chi-square observed table, as they have values less than 5. However, with a p-value so much less than 0.05, we can assume a statistically significant relationship between race/ethnicity and transportation mode choice at a 95% confidence level despite this possible inaccuracy.
+
+
+```{r}
+chi_sq1$expected
+```
+
+
+### 2. Relationships between race/ethnicity and nativity
+```{r}
+chi_sq2 <- chisq.test(tractMA2018$maj_race, tractMA2018$maj_foreign == TRUE)
+chi_sq2
+```
+
+```{r}
+chi_sq2$observed
+```
+
+Here are the values I observe when I assign the value "TRUE" for the variable "Whether the majority of population is foreign-born or not". I see that the non-hispanic other violates the chi-square observed table, as it has a value less than 5. However, with a p-value so much less than 0.05, we can assume a statistically significant relationship between race/ethnicity and nativity at a 95% confidence level despite this possible inaccuracy.
+
+
+```{r}
+chi_sq2$expected
+```
+
+
+### 3. Relationships between nativity and transportation mode choice
+```{r}
+chi_sq3 <- chisq.test(tractMA2018$maj_foreign, tractMA2018$maj_tra == "Car")
+chi_sq3
+```
+
+```{r}
+chi_sq3$observed
+```
+
+With a p-value so much less than 0.05, we can assume a statistically significant relationship between nativity and transportation mode choice at a 95% confidence level.
+
+```{r}
+chi_sq3$expected
+```
+
+
