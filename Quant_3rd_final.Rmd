@@ -3,14 +3,14 @@ title: "Quant_3rd_final"
 author: "Jiwon Park"
 date: '2020 9 23 '
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: '4'
   html_document:
     theme: cosmo
     toc: yes
     toc_depth: 4
     toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
 ---
 ## Load Packages
 ```{r message = FALSE}
