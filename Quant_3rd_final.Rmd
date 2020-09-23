@@ -2,12 +2,15 @@
 title: "Quant_3rd_final"
 author: "Jiwon Park"
 date: '2020 9 23 '
-output: 
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
   html_document:
-    theme : cosmo
-    toc : true
-    toc_depth : 4
-    toc_float : true 
+    theme: cosmo
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
 ---
 ## Load Packages
 ```{r message = FALSE}
@@ -99,7 +102,7 @@ correlation6
 The relationship between percentage of tenant population and percentage of foreign-born population in the tracts of Massachusetts : moderate (> |.6|), statistically significant(p-value<0.05), positive correlation at a 95% confidence level.
 
 
-### 1-1. A dot plot showing the relationships between median income and percentage of tenant population
+### 1-1. A scatter plot showing the relationships between median income and percentage of tenant population
 ```{r}
 ggplot(tractMA2018, aes(x=med_incomeE, y=pct_ten)) +
   geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
@@ -119,7 +122,7 @@ ggplot(tractMA2018, aes(x=med_incomeE, y=pct_ten)) +
 
 Looking at this graph, it is understandable why the general correlation between two variables was weak. It is because the percentage of tenant population increases with high positive coefficient to the level of certain median income (around USD15,000), and then significantly drops thereafter until the median income reaches USD45,000. 
 
-### 2-1. A dot plot showing the relationships between median income and monthly housing cost
+### 2-1. A scatter plot showing the relationships between median income and monthly housing cost
 ```{r}
 ggplot(tractMA2018, aes(x=med_incomeE, y=mon_housE)) +
   geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
@@ -138,7 +141,7 @@ ggplot(tractMA2018, aes(x=med_incomeE, y=mon_housE)) +
 ```
 
 
-### 3-1. A dot plot showing the relationships between median income and nativity
+### 3-1. A scatter plot showing the relationships between median income and nativity
 ```{r}
 ggplot(tractMA2018, aes(x=med_incomeE, y=pct_foreign)) +
   geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
@@ -157,7 +160,7 @@ ggplot(tractMA2018, aes(x=med_incomeE, y=pct_foreign)) +
 ```
 
 
-### 4-1. A dot plot showing the relationships between percentage of tenant population and monthly housing cost
+### 4-1. A scatter plot showing the relationships between percentage of tenant population and monthly housing cost
 ```{r}
 ggplot(tractMA2018, aes(x=mon_housE, y=pct_ten)) +
   geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
@@ -178,7 +181,7 @@ ggplot(tractMA2018, aes(x=mon_housE, y=pct_ten)) +
 Looking at this graph, it is understandable that why the general correlation between two variables was extremely weak. It is interesting (especially when I understood this statistics based on my urban experience in Korea), as often homeownership is deemed to lower the housing cost for households - though there are also a lot more benefits attached to it such as the freedom from eviction. However, this plot at least implies that there is is a low correlation between the housing cost and housing tenure in the tracts of Massachusetts. I checked that monthly housing cost used here contains both cash rent and mortgage payment with this source (https://www2.census.gov/programs-surveys/acs/tech_docs/subject_definitions/2018_ACSSubjectDefinitions.pdf).
 
 
-### 5-1. A dot plot showing the relationships between monthly housing cost and nativity
+### 5-1. A scatter plot showing the relationships between monthly housing cost and nativity
 ```{r}
 ggplot(tractMA2018, aes(x=mon_housE, y=pct_foreign)) +
   geom_point(size = 0.5, alpha = 0.3, position = "jitter") +
@@ -197,7 +200,7 @@ ggplot(tractMA2018, aes(x=mon_housE, y=pct_foreign)) +
 ```
 
 
-### 6-1. A dot plot showing the relationships between percentage of tenant population and nativity
+### 6-1. A scatter plot showing the relationships between percentage of tenant population and nativity
 
 ```{r}
 ggplot(tractMA2018, aes(x=pct_ten, y=pct_foreign)) +
@@ -417,7 +420,7 @@ There is a significant relationship between median income and race/ethnicity wit
 ```{r}
 ggplot(tractMA2018, aes(x = maj_race, y = med_incomeE)) +
   geom_boxplot() +
-  theme_bw() +
+  theme_dark() +
   ggtitle("Relationships between Median Income and Race/Ethnicity") +
   theme(title = element_text(size=9, face = "bold")) + 
   scale_x_discrete(name = "Race/Ethnicity With the Highest Proportion") +
