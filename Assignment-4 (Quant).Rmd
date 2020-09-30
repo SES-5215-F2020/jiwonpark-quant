@@ -1,0 +1,75 @@
+---
+title: "Quant_4th"
+author: "Jiwon Park"
+date: '2020 9 27 '
+output:
+  html_document:
+    theme: cosmo
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+---
+## Load Packages
+
+```{r message = FALSE}
+library(tidyverse)
+```
+
+## Final Variables from Assignment-3
+
+1. Median Income (continuous) : med_income
+
+2. Monthly Housing Cost (continuous) : mon_hous
+
+3. Percentage of Tenant Population (continuous) : pct_ten
+
+4. Percentage of Foreign-born Population (continuous) : pct_foreign
+
+5. Whether the Majority of Population is Foreign-born or Not (categorical) : maj_foreign
+
+6. Transportation Mode With the Highest Modal Share (categorical) : maj_tra
+
+7. Race/Ethnicity With the Highest Proportion (not Hispanic or Latino) (categorical) : maj_race
+
+```{r}
+tractMA2018 <- read.csv("tractMA2018_3rd.csv") %>%
+  mutate(maj_race == case_when(
+         maj_race == "nh_asian" ~ "Asian not Hispanic/Latino",
+         maj_race == "nh_black" ~ "Black not Hispanic/Latino",
+         maj_race == "nh_white" ~ "White not Hispanic/Latino",
+         maj_race == "h_latino" ~ "Hispanic",
+         maj_race == "nh_other" ~ "Other",
+         maj_race == "No Majority" ~ "No Race/Ethnicity with the Higest Ratio"))
+```
+
+## Linear Regression model
+
+Dependent Variable : Percentage of Tenant Population
+
+Independent Variable : 
+
+1. Median income (continuous)
+
+2. Race/Ethnicity With the Highest Proportion (not Hispanic or Latino) (categorical)
+
+3. Transportation Mode with the Highest Modal Share (categorical)
+
+4. Percentage of Foreign-born Population (continuous) 
+
+```{r}
+model1 <- lm(pct_ten ~ med_incomeE + maj_race + maj_tra + pct_foreign, 
+            data = tractMA2018)
+
+summary(model1)
+```
+
+With the adjusted R-squared value of .5378, these independent variables explain 53.7% of the variation in the percentage of tenants in this dataset. Important to note, however, is that not all of these relationships are statistically significant. According to the regression model, median income, transportation mode with the highest modal share, nativity, and race/ethnicity except the category of "Non-hispanic Others" are statistically significant with sufficiently low p-values.    
+
+Median income has an inverse relationship with the dependent variable, meaning that as the median income increases, the percentage of tenant population decreases. For every one dollar increase in the census tract's median income, the value of pct_ten decreases by 0.000004324. The difference is modest, but statistically significant at a 95% confidence level.
+
+With Hispanic/Latino as our base case, the percentage of tenant population is an average of 19%p lower in the tracts where Asian population accounts for the highest racial proportion than the tracts with hispanic/latino constituting the highest racial proportion. Similarly, the percentage of tenant population is an average of 13%p and 18%p lower in each tracts where black and white population accounts for the highest racial proportion compared to the tracts with hispanic/latino with the highest proportion. These differences are significant at a 95% confidence level. However, with a p-value of 0.628513, the case when "other race/ethnicity" constitutes the highest racial composition is not a statistically significant predictor when controlling for other variables. 
+
+In terms of the major transportation mode used, percentage of tenant population is an average of 8.5%p higher in the tracts where walking accounts for the highest modal share than car-dominant tracts. Also, percentage of tenant population is an average of 20%p higher in the tracts where public transportation accounts for the highest modal share than car-dominant tracts. This differences are all significant at a 95% confidence level.
+
+Lastly, percentage of foreign-born population has a positive relationship with the percentage of tenant population. For every 1%p increase in the census tract's percentage of foreign-born population, the value of pct_ten increases 0.849%p. It is statistically significant at a 95% confidence level. 
+
