@@ -8,6 +8,9 @@ output:
     toc: yes
     toc_depth: 4
     toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
 ---
 ## Load Packages
 
@@ -65,11 +68,11 @@ summary(model1)
 
 With the adjusted R-squared value of .5378, these independent variables explain 53.7% of the variation in the percentage of tenants in this dataset. Important to note, however, is that not all of these relationships are statistically significant. According to the regression model, median income, transportation mode with the highest modal share, nativity, and race/ethnicity except the category of "Non-hispanic Others" are statistically significant with sufficiently low p-values.    
 
-Median income has an inverse relationship with the dependent variable, meaning that as the median income increases, the percentage of tenant population decreases. For every one dollar increase in the census tract's median income, the value of pct_ten decreases by 0.000004324. The difference is modest, but statistically significant at a 95% confidence level.
+Median income has an inverse relationship with the dependent variable, meaning that as the median income increases, the percentage of tenant population decreases. For every one dollar increase in the census tract's median income, the value of pct_ten decreases by 0.000004324%p. The difference is modest, but statistically significant at a 95% confidence level.
 
-With Hispanic/Latino as our base case, the percentage of tenant population is an average of 19%p lower in the tracts where Asian population accounts for the highest racial proportion than the tracts with hispanic/latino constituting the highest racial proportion. Similarly, the percentage of tenant population is an average of 13%p and 18%p lower in each tracts where black and white population accounts for the highest racial proportion compared to the tracts with hispanic/latino with the highest proportion. These differences are significant at a 95% confidence level. However, with a p-value of 0.628513, the case when "other race/ethnicity" constitutes the highest racial composition is not a statistically significant predictor when controlling for other variables. 
+With Hispanic/Latino as our base case, the percentage of tenant population is an average of 0.19%p lower in the tracts where Asian population accounts for the highest racial proportion than the tracts with hispanic/latino constituting the highest racial proportion. Similarly, the percentage of tenant population is an average of 0.13%p and 0.18%p lower in each tracts where black and white population accounts for the highest racial proportion compared to the tracts with hispanic/latino with the highest proportion. These differences are significant at a 95% confidence level. However, with a p-value of 0.628513, the case when "other race/ethnicity" constitutes the highest racial composition is not a statistically significant predictor when controlling for other variables. 
 
-In terms of the major transportation mode used, percentage of tenant population is an average of 8.5%p higher in the tracts where walking accounts for the highest modal share than car-dominant tracts. Also, percentage of tenant population is an average of 20%p higher in the tracts where public transportation accounts for the highest modal share than car-dominant tracts. This differences are all significant at a 95% confidence level.
+In terms of the major transportation mode used, percentage of tenant population is an average of 0.085%p higher in the tracts where walking accounts for the highest modal share than car-dominant tracts. Also, percentage of tenant population is an average of 0.2%p higher in the tracts where public transportation accounts for the highest modal share than car-dominant tracts. This differences are all significant at a 95% confidence level.
 
 Lastly, percentage of foreign-born population has a positive relationship with the percentage of tenant population. For every 1%p increase in the census tract's percentage of foreign-born population, the value of pct_ten increases 0.849%p. It is statistically significant at a 95% confidence level. 
 
