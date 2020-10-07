@@ -21,27 +21,18 @@ library(jtools)
 library(devtools)
 library(interactions)
 library(knitr)
-library(huxtable)
 library(ggstance)
 ```
 
-
 ## Load the data
 ```{r}
-tractMA2018 <- read.csv("tractMA2018_3rd.csv") %>%
-  mutate(maj_race == case_when(
-         maj_race == "nh_asian" ~ "Asian not Hispanic/Latino",
-         maj_race == "nh_black" ~ "Black not Hispanic/Latino",
-         maj_race == "nh_white" ~ "White not Hispanic/Latino",
-         maj_race == "h_latino" ~ "Hispanic",
-         maj_race == "nh_other" ~ "Other",
-         maj_race == "No Majority" ~ "No Dominant Race/Ethnicity"))
+tractMA2018 <- read.csv("tractMA2018_3rd.csv") 
 ```
 
 
 ## Initial Regression Model
 
-Here is a linear regression model predicting percentage of tenant population, based on median income, race/ethnicity, transportation mode of use, and nativity:
+Here is a linear regression model predicting percentage of tenant population, based on median income, race/ethnicity, transportation mode, and nativity:
 
 ```{r}
 model1 <- lm(pct_ten ~ med_incomeE + maj_race + maj_tra + pct_foreign, 
@@ -51,7 +42,6 @@ summary(model1)
 ```
 
 ## A log transformation
-
 ```{r}
 model2 <- lm(pct_ten ~ log(med_incomeE) + maj_race + maj_tra + pct_foreign, 
             data = tractMA2018)
@@ -68,25 +58,24 @@ tractMA2018 <- tractMA2018 %>%
                                    pct_foreign > 0.5 ~ "Majority Foreign-born",
                                    pct_foreign < 0.5 ~ "Majority US-born"))
 
-model3 <- lm(pct_ten ~ med_incomeE + maj_race + maj_tra + nativity, 
+model3 <- lm(pct_ten ~ log(med_incomeE) + maj_race + maj_tra + nativity, 
             data = tractMA2018)
 
 summary(model3)
 ```
 
-I transformed the continuous variable, percentage of foreign-born population, to the categorical variable. As a result, R-squared value decreased from 0.5378 to 0.4067. So this model fit turns out to be worse than when we had a continuous variable for the percentage of foreign-born population. 
+I transformed the continuous variable, percentage of foreign-born population, to the categorical variable. As a result, R-squared value decreased from 0.5175 to 0.3818. So this model fit turns out to be worse than when we had a continuous variable for the percentage of foreign-born population. 
 
-## Adding an interaction term
-
+## Adding an interaction term : Median Income and Transportation Mode 
 ```{r}
 model4 <- lm(pct_ten ~ med_incomeE + maj_race + maj_tra + pct_foreign +
-               med_incomeE:maj_race,
+               med_incomeE:maj_tra,
             data = tractMA2018)
 
 summary(model4)
 ```
 
-The negative and statistically significant coefficient for median income tells us that the tracts with higher median income have lower percentage of tenant population. The positive and statistically significant coefficient for the interaction between median income and race (except for the category of "other races") tells us that median income has more of an effect on the percentage of tenant population for asian, black, and white population than it does for hispanic-latino population.
+The negative and statistically significant coefficient for median income tells us that the tracts with higher median income have lower percentage of tenant population. However, the positive and statistically significant coefficient for the interaction between median income and transportation mode (except the "No Majority" with statistically insignificant p-value) tells us that median income has more of an effect on the percentage of tenant population for the tracts where public transportation and walking is the majority transport than it does for ones with cars.
 
 ## Visualizing the results
 ```{r}
@@ -105,6 +94,11 @@ ggplot(ModelFit, aes(x = model, y = R_square)) +
   theme_bw()
 ```
 
+## Preferred Model 
+
+I will pick Model4 as my preferred model as it has the highest R-squared value (0.6056), which means independent variables explain 60.5% of the variation in the percentage of tenants in this dataset.
+
+## Comparing Initial Model and Preferred Model 
 ```{r}
 coeff_names <- c("Median Income" = "med_incomeE",
                  "Majority Asian\n(compared to hispanic-latino)" = "maj_racenh_asian",
@@ -113,12 +107,11 @@ coeff_names <- c("Median Income" = "med_incomeE",
                  "Majority White\n(compared to hispanic-latino)" = "maj_racenh_white",
                  "No Majority Transport Modal Share\n(compared to car)" = "maj_traNo Majority",
                  "Public Transportation with the highest Modal Share\n(compared to car)" = "maj_traPublic Transportation",
-                 "Majority Walking\n(compared to car)" = "maj_traWalking ",
+                 "Majority Walking\n(compared to car)" = "maj_traWalking",
                  "Percentage of Foreign-born Population" ="pct_foreign",
-                 "Interaction:\nAsian and Median Income" = "med_incomeE:maj_racenh_asian",
-                 "Interaction:\nBlack and Median Income" = "med_incomeE:maj_racenh_black",
-                 "Interaction:\nOther Race and Median Income" = "med_incomeE:maj_racenh_other",
-                 "Interaction:\nWhite and Median Income" = "med_incomeE:maj_racenh_white")
+                 "Interaction:\nNo Majority Transport and Median Income" = "med_incomeE:maj_traNo Majority",
+                 "Interaction:\nMajority Public Transportation and Median Income" = "med_incomeE:maj_traPublic Transportation",
+                 "Interaction:\nMajority Walking and Median Income" = "med_incomeE:maj_traWalking")
 
 export_summs(model1, model4, 
              error_format = "(p = {p.value})",
@@ -127,8 +120,11 @@ export_summs(model1, model4,
              coefs = coeff_names)
 ```
 
-## Visualizing the regression results
 
+## Visualizing the Preferred Model (Model4)
+
+
+### 95-percent Confidence Intervals for Model 4 Coefficients
 ```{r}
 coeff_names <- c("Median Income" = "med_incomeE",
                  "Majority Asian\n(compared to hispanic-latino)" = "maj_racenh_asian",
@@ -137,12 +133,11 @@ coeff_names <- c("Median Income" = "med_incomeE",
                  "Majority White\n(compared to hispanic-latino)" = "maj_racenh_white",
                  "No Majority Transport Modal Share\n(compared to car)" = "maj_traNo Majority",
                  "Public Transportation with the highest Modal Share\n(compared to car)" = "maj_traPublic Transportation",
-                 "Majority Walking\n(compared to car)" = "maj_traWalking ",
+                 "Majority Walking\n(compared to car)" = "maj_traWalking",
                  "Percentage of Foreign-born Population" ="pct_foreign",
-                 "Interaction:\nAsian and Median Income" = "med_incomeE:maj_racenh_asian",
-                 "Interaction:\nBlack and Median Income" = "med_incomeE:maj_racenh_black",
-                 "Interaction:\nOther Race and Median Income" = "med_incomeE:maj_racenh_other",
-                 "Interaction:\nWhite and Median Income" = "med_incomeE:maj_racenh_white")
+                 "Interaction:\nNo Majority Transport and Median Income" = "med_incomeE:maj_traNo Majority",
+                 "Interaction:\nMajority Public Transportation and Median Income" = "med_incomeE:maj_traPublic Transportation",
+                 "Interaction:\nMajority Walking and Median Income" = "med_incomeE:maj_traWalking")
 
 plot_coefs(model4, 
            coefs = coeff_names,
